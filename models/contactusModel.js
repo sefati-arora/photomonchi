@@ -1,0 +1,32 @@
+module.exports=(Sequelize,sequelize,DataTypes) =>
+{
+    return sequelize.define(
+        "contacttable",
+        {
+            ...require('./core')(Sequelize,DataTypes),
+            name:
+            {
+                type:DataTypes.STRING(50),
+                allowNull:true
+            },
+            email:
+            {
+                type:DataTypes.STRING(50),
+                allowNull:true
+            },
+            phoneNumber:
+            {
+                type:DataTypes.STRING(100),
+                allowNull:true
+            },
+            message:
+            {
+                type:DataTypes.TEXT("long"),
+                allowNull:true
+            }
+        },
+        {
+            tablename:"contacttable"
+        }
+    )
+}
