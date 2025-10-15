@@ -47,7 +47,12 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         type:DataTypes.INTEGER,
         allowNull:true,
         defaultValue:0 ,    //0for notcompleted 1 for completed
-      }
+      },
+        otpVerified:{
+            type:DataTypes.INTEGER,
+            allowNull:true,
+            defaultValue:0,
+        },
     },
     {
       tablename: "users",

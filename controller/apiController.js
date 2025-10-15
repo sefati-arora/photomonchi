@@ -12,10 +12,7 @@ const otpManager = require("node-twillo-otp-manager")(
 // const { Op, literal } = require("sequelize");
 // const moment = require("moment");
 // const cron = require("node-cron");
-Models.addressModel.belongsTo(Models.userModel, {
-  foreignKey: "userId",
-  as: "user",
-});
+
 Models.bookingModel.belongsTo(Models.addressModel, {
   foreignKey: "address",
   as: "addressInfo"
@@ -157,6 +154,43 @@ module.exports = {
       return res.status(500).json({ message: "ERROR!", error });
     }
   },
+  signIn:async(req,res) =>
+  {
+      try {
+      const schema = Joi.object({
+        userName: Joi.string().required(),
+        email: Joi.string()
+          .email({ tlds: { allow: ["com", "net", "org", "in", "us"] } })
+          .required()
+          .label("Email"),
+      });
+      const payload = await helper.validationJoi(req.body, schema);
+      const { email } = payload;
+      const userExist = await Models.userModel.findOne({ where: { email } });
+      if (!userExist) {
+        return res.status(404).json({ message: "User not found!!" });
+      }
+      const otp = Math.floor(1000 + Math.random() * 9000);
+      const response = await Models.userModel.create({
+        userName: payload.userName,
+        email,
+        otp,
+        otpVerified: 0,
+      });
+      try {
+        await commonHelper.otpSendLinkHTML(req, email, otp);
+        console.log(`OTP send(${email}}):${otp}`);
+      } catch (error) {
+        await Models.userModel.destroy({ where: { id: response.id } });
+        return res.status(400).json({ message: "Failed to send OTP" });
+      }
+      console.log(`Test Mode: OTP for email (${email}): ${otp}`);
+      return res.status(200).json({ message: "OTP send successfully" });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ message: "!!!!ERROR!!!!!" });
+    }
+  },
   profileCreated: async (req, res) => {
     try {
       const schema = Joi.object({
@@ -166,7 +200,13 @@ module.exports = {
         phoneNumber: Joi.string().required(),
       });
       const payload = await helper.validationJoi(req.body, schema);
-      const user = await Models.userModel.create({
+      const {phoneNumber} =payload;
+      const exist=await Models.userModel.findOne({where:{phoneNumber}});
+      if(!exist)
+      {
+        return res.status(404).json({message:"user already exist"})
+      }
+        user = await Models.userModel.update({
         firstName: payload.firstName,
         lastName: payload.lastName,
         email: payload.email,
@@ -213,20 +253,14 @@ module.exports = {
   getProfile: async (req, res) => {
      try {
        const userId = req.user.id;
-      //  let user = await Models.userModel.findOne({
-      //    where: { id: userId },
-      //    include: [
-      //      {
-      //        model: Models.addressModel,
-      //        as: "addresses",
-      //      },
-      //    ],
-      //  });
-      //  if(!user)
-      //  {
-      //   return res.status(404).json({message:"user not found!"})
-      //  }
-       return res.status(200).json({message:"USER FOUND SUCCESSFULLY"})
+       let user = await Models.userModel.findOne({
+         where: { id: userId }
+       });
+       if(!user)
+       {
+        return res.status(404).json({message:"user not found!"})
+       }
+       return res.status(200).json({message:"USER FOUND SUCCESSFULLY",user})
        }
        catch(error)
        {

@@ -5,7 +5,8 @@ const adminController=require('../controller/adminController')
 const router= express.Router()
 
 router.get('/sidIdGenerateTwilio',apiController.sidIdGenerateTwilio)
-router.post('/otpSend',apiController.otpSend)
+router.post('/otpSend',apiController.otpSend),
+router.post('/signIn',apiController.signIn),
 router.post('/profileCreated',apiController.profileCreated);
 router.post('/editProfile',authentication,apiController.editProfile);
 router.post('/deletedAccount',authentication,apiController.deletedAccount);
