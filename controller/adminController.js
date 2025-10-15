@@ -96,5 +96,27 @@ module.exports=
             console.log(error);
             return res.status(500).json({message:"error"})
         }
+      },
+      faq:async(req,res) =>
+      {
+        try
+        {
+        const schema=Joi.object({
+          question:Joi.string().required(),
+          answer:Joi.string().required()
+        })
+        const payload=await helper.validationJoi(req.body,schema);
+        const user=await Models.faqModel.create({
+          question:payload.question,
+          answer:payload.answer
+        })
+        return res.status(200).json({message:"DATA ENTERED!",user})
+      }
+      catch(error)
+      {
+        console.log(error);
+        return res.status(500).json({message:"ERROR",error})
+      }
+
       }
 }

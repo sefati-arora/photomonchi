@@ -535,5 +535,19 @@ module.exports = {
     console.log(error);
     return res.status(500).json({message:"ERROR",error})
    }
+ },
+ getfaq:async(req,res) =>
+ {
+  try
+  {
+   const{id}=req.body;
+   const user=await Models.faqModel.findOne({where:{id}});
+   return res.status(200).json({message:"DATA FOUND",user})
+  }
+  catch(error)
+  {
+    console.log(error);
+    return res.status(500).json({message:"ERROR",error})
+  }
  }
 }

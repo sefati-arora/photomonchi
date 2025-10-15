@@ -1,4 +1,5 @@
 const Sequelize= require("sequelize");
+const faqModel = require("./faqModel");
 const sequelize= require('../config/connectdb').sequelize;
 
 module.exports={
@@ -10,5 +11,6 @@ module.exports={
       notificationModel:require('./notificationModel')(Sequelize,sequelize,Sequelize.DataTypes),
        addressModel:require('./addressModel')(Sequelize,sequelize,Sequelize.DataTypes),
        ordersModel:require('./ordersModel')(Sequelize,sequelize,Sequelize.DataTypes),
-       contactusModel:require('./contactusModel')(Sequelize,sequelize,Sequelize.DataTypes)
+       contactusModel:require('./contactusModel')(Sequelize,sequelize,Sequelize.DataTypes),
+       faqModel:require('./faqModel')(Sequelize,sequelize,Sequelize.DataTypes)
 }

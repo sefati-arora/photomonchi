@@ -27,5 +27,7 @@ router.get('/getsession',authentication,adminController.getsession),
 router.get('/bookingDetails',authentication,apiController.bookingDetails),
 router.get('/bookingrelation',authentication,apiController.bookingrelation),
 router.post('/bookingfind',authentication,apiController.bookingfind),
-router.post('/bookingData',authentication,bookingController.bookingData)
+router.post('/bookingData',authentication,bookingController.bookingData),
+router.post('/faq',adminController.faq),
+router.get('/getfaq',authentication,apiController.getfaq),
 module.exports=router;
