@@ -148,7 +148,8 @@ module.exports = {
       const phone = countryCode + phoneNumber;
       let response = await otpManager.sendOTP(phone);
       console.log(response);
-      return res.status(200).json({ message: "successfully send", response });
+      const token=jwt.sign({id:user.id},process.env.SECRET_KEY)
+      return res.status(200).json({ message: "successfully send", response ,token});
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "ERROR!", error });
@@ -178,14 +179,15 @@ module.exports = {
         otpVerified: 0,
       });
       try {
-        await commonHelper.otpSendLinkHTML(req, email, otp);
+        await commonhelper.otpSendLinkHTML(req, email, otp);
         console.log(`OTP send(${email}}):${otp}`);
       } catch (error) {
         await Models.userModel.destroy({ where: { id: response.id } });
         return res.status(400).json({ message: "Failed to send OTP" });
       }
       console.log(`Test Mode: OTP for email (${email}): ${otp}`);
-      return res.status(200).json({ message: "OTP send successfully" });
+      const token=jwt.sign({id:response.id},process.env.SECRET_KEY)
+      return res.status(200).json({ message: "OTP send successfully",token });
     } catch (error) {
       console.log(error);
       return res.status(400).json({ message: "!!!!ERROR!!!!!" });
@@ -193,25 +195,13 @@ module.exports = {
   },
   profileCreated: async (req, res) => {
     try {
-      const schema = Joi.object({
-        firstName: Joi.string().required(),
-        lastName: Joi.string().required(),
-        email: Joi.string().required(),
-        phoneNumber: Joi.string().required(),
-      });
-      const payload = await helper.validationJoi(req.body, schema);
-      const {phoneNumber} =payload;
-      const exist=await Models.userModel.findOne({where:{phoneNumber}});
-      if(!exist)
-      {
-        return res.status(404).json({message:"user already exist"})
-      }
-        user = await Models.userModel.update({
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        email: payload.email,
-        phoneNumber: payload.phoneNumber,
-      });
+        const{email,phoneNumber}=req.body;
+        const userexist=await Models.userModel.findOne({where:{email,phoneNumber}});
+        if(userexist)
+        {
+          return res.status(404).json({message:"user already exist"})
+        }
+
       const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY);
       return res
         .status(200)
@@ -462,8 +452,8 @@ module.exports = {
   clearAddress:async(req,res) =>
   {
     try{
-    const userId=req.user.id;
-     const clearaddress=await Models.addressModel.destroy({where:{userId:userId}})
+    const {id}=req.body;
+     const clearaddress=await Models.addressModel.destroy({where:{id}})
      return res.status(200).json({message:"CLEAR ADDRESS SUCCESSFULLY!",clearaddress})
     }
     catch(error)
@@ -476,25 +466,9 @@ module.exports = {
   {
     try
     {
-      const { userId, address, sessionBooked, category, bookingLocation, date } = req.body;
-    const existingUser = await Models.bookingModel.findOne({
-      where: { address, category, bookingLocation }
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this booking info" });
-    }
-
-       const user=await Models.bookingModel.create({
-        userId,
-        address,
-        category,
-        sessionBooked,
-        bookingLocation,
-          date
-       });
-        await user.update({ isBookingCompleted: 1 });
-       return res.status(200).json({message:"data related to booking enter successfullyy!!",user})
+      const { id } = req.body;
+    const User = await Models.bookingModel.findOne({id})
+       return res.status(200).json({message:"data related to booking fetch successfullyy!!",User})
     }
     catch(error)
     {
@@ -526,48 +500,12 @@ module.exports = {
     return res.status(500).json({message:"ERROR",error})
    }
  },
- clearBooking:async(req,res) =>
- {
-  try
-  {
-    const {id}=req.body;
-     const user=await Models.bookingModel.destroy({where:{id:id}})
-     return res.status(200).json({message:"BOOKING DETAILS DESTROY"})
-  }
-  catch(error)
-  {
-    console.log(error);
-    return res.status(500).json({message:"ERROR",error})
-  }
- },
- orderDetails:async(req,res) =>
- {
-  try
-  {
-     const{userId,title,bookingId}=req.body;
-       if (!userId || !title || !bookingId) {
-      return res.status(400).json({ message: "userId and title are required" });
-    }
-     const user=await Models.ordersModel.create({
-      userId,
-      title,
-      bookingId
-     })
-     await user.update({status:1});
-     return res.status(200).json({message:"DATA RELATED ORDER ENTER",user})
-  }
-  catch(error)
-  {
-    console.log(error);
-    return res.status(500).json({message:"ERROR",error})
-  }
- },
  bookingfind:async(req,res) =>
  {
    try
    {
      const {id}=req.body;
-     const user=await Models.bookingModel.findAll({where:{id:id}})
+     const user=await Models.bookingModel.findOne({where:{id:id}})
      return res.status(200).json({message:"data find",user});
    }
    catch(error)
