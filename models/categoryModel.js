@@ -20,7 +20,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
       Picture: {
         type: DataTypes.STRING(255),
         allowNull: true,
-      }, 
+      }
     },
     {
       timestamps: true,

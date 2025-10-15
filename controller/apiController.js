@@ -16,6 +16,17 @@ Models.addressModel.belongsTo(Models.userModel, {
   foreignKey: "userId",
   as: "user",
 });
+Models.bookingModel.belongsTo(Models.addressModel, {
+  foreignKey: "address",
+  as: "addressInfo"
+});
+
+Models.addressModel.hasMany(Models.bookingModel, {
+  foreignKey: "address",
+  as: "bookingInfo"
+});
+
+
 
 // cron.schedule("* * * * *", async () => {
 //   const nowStr = moment().format("YYYY-MM-DD HH:mm:ss");
@@ -302,6 +313,26 @@ module.exports = {
       return res.status(400).json({message:"Error while sending OTP"})
     }
   },
+  postContactus:async(req,res) =>
+  {
+    try{
+     const userId=req.user.id;
+     const {name,email,phoneNumber,message}=req.body;
+     const user=await Models.contactusModel.create({
+      userId:userId,
+      name:name,
+      email:email,
+      phoneNumber:phoneNumber,
+      message:message
+     });
+     return res.status(200).json({message:"Data post successfully",user})
+    }
+    catch(error)
+    {
+      console.log(error);
+      return res.status(500).json({message:"ERROR"})
+    }
+  },
     notification: async (req, res) => {
     try {
       const schema = Joi.object({
@@ -323,26 +354,6 @@ module.exports = {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "ERROR!!!!" });
-    }
-  },
-  postContactus:async(req,res) =>
-  {
-    try{
-     const userId=req.user.id;
-     const {name,email,phoneNumber,message}=req.body;
-     const user=await Models.contactusModel.create({
-      userId:userId,
-      name:name,
-      email:email,
-      phoneNumber:phoneNumber,
-      message:message
-     });
-     return res.status(200).json({message:"Data post successfully",user})
-    }
-    catch(error)
-    {
-      console.log(error);
-      return res.status(500).json({message:"ERROR"})
     }
   },
    getnotification: async (req, res) => {
@@ -426,6 +437,109 @@ module.exports = {
       console.log(error);
       return res.status(500).json({message:"ERROR"})
     }
-  }
+  },
+  bookingDetails:async(req,res) =>
+  {
+    try
+    {
+      const { userId, address, sessionBooked, category, bookingLocation, date } = req.body;
+    const existingUser = await Models.bookingModel.findOne({
+      where: { address, category, bookingLocation }
+    });
 
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists with this booking info" });
+    }
+
+       const user=await Models.bookingModel.create({
+        userId,
+        address,
+        category,
+        sessionBooked,
+        bookingLocation,
+          date
+       });
+        await user.update({ isBookingCompleted: 1 });
+       return res.status(200).json({message:"data related to booking enter successfullyy!!",user})
+    }
+    catch(error)
+    {
+      console.log(error);
+      return res.status(500).json({message:"ERROR!!"})
+    }
+  },
+ bookingrelation:async(req,res) =>
+ {
+   try
+   {
+      const{id}=req.body;
+      const bookingdetail=await Models.bookingModel.findOne(
+        {where:
+          {id},
+       include:[
+        {
+          model:Models.addressModel,
+          as:"addressInfo"
+        }
+       ]
+      }
+    );
+    return res.status(200).json({message:"DATA LINKED TOGETHER",bookingdetail})
+   }
+   catch(error)
+   {
+    console.log(error);
+    return res.status(500).json({message:"ERROR",error})
+   }
+ },
+ clearBooking:async(req,res) =>
+ {
+  try
+  {
+    const {id}=req.body;
+     const user=await Models.bookingModel.destroy({where:{id:id}})
+     return res.status(200).json({message:"BOOKING DETAILS DESTROY"})
+  }
+  catch(error)
+  {
+    console.log(error);
+    return res.status(500).json({message:"ERROR",error})
+  }
+ },
+ orderDetails:async(req,res) =>
+ {
+  try
+  {
+     const{userId,title,bookingId}=req.body;
+       if (!userId || !title || !bookingId) {
+      return res.status(400).json({ message: "userId and title are required" });
+    }
+     const user=await Models.ordersModel.create({
+      userId,
+      title,
+      bookingId
+     })
+     await user.update({status:1});
+     return res.status(200).json({message:"DATA RELATED ORDER ENTER",user})
+  }
+  catch(error)
+  {
+    console.log(error);
+    return res.status(500).json({message:"ERROR",error})
+  }
+ },
+ bookingfind:async(req,res) =>
+ {
+   try
+   {
+     const {id}=req.body;
+     const user=await Models.bookingModel.findAll({where:{id:id}})
+     return res.status(200).json({message:"data find",user});
+   }
+   catch(error)
+   {
+    console.log(error);
+    return res.status(500).json({message:"ERROR",error})
+   }
+ }
 }

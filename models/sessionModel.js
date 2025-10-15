@@ -8,7 +8,7 @@ module.exports=(Sequelize,sequelize,DataTypes) =>
             {
                 type:DataTypes.STRING(225),
                 allowNull:true,
-                defaultValue:null
+                 defaultValue:null
             },
             sessionPrice:
             {

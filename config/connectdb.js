@@ -8,7 +8,7 @@ const connectdb = async () => {
     await sequelize.authenticate()
     .then( async () =>
     {
-      await sequelize.sync({alter:false})
+      await sequelize.sync({alter:true})
       console.log("connted db")
     })
     .catch ((error)=> {

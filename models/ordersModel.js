@@ -25,6 +25,19 @@ module.exports=(Sequelize,sequelize,DataTypes) =>
                 type:DataTypes.INTEGER,
                 allowNull:true,
                 defaultValue:0    //0 for past 1 for current and 2 for upcoming...
+            },
+            bookingId:
+            {
+                
+                type:Sequelize.UUID,
+                allowNull:true,
+                references:
+                {
+                    model:"bookingtables",
+                    key:"id"
+                },
+                onUpdate:"CASCADE",
+                onDelete:"CASCADE"
             }
         },
         {
