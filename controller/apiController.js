@@ -195,17 +195,39 @@ module.exports = {
   },
   profileCreated: async (req, res) => {
     try {
-        const{email,phoneNumber}=req.body;
+      const schema=Joi.object({
+            firstName:Joi.string().required(),
+            lastName:Joi.string().required(),
+            email:Joi.string().required(),
+            phoneNumber:Joi.string().required()
+          })
+           const payload=await helper.validationJoi(req.body,schema)
+        const{email,phoneNumber,firstName,lastName}=payload;
         const userexist=await Models.userModel.findOne({where:{email,phoneNumber}});
         if(userexist)
         {
-          return res.status(404).json({message:"user already exist"})
+          await Models.userModel.update({
+          firstName,
+          lastName,
+        },
+      {
+        where:{phoneNumber,email}
+      })
         }
-
-      const token = jwt.sign({ id: user.id }, process.env.SECRET_KEY);
+        else
+        {
+          let user=await Models.userModel.create({
+            firstName:payload.firstName,
+            lastName:payload.lastName,
+            email:payload.email,
+            phoneNumber:payload.phoneNumber
+          })
+          console.log(">>>>>>>>>>",user)
+        }
+      const token = jwt.sign({ phoneNumber }, process.env.SECRET_KEY);
       return res
         .status(200)
-        .json({ message: "SUCCESSFULLY PROFILE CREATED!!!", token, user });
+        .json({ message: "SUCCESSFULLY PROFILE CREATED!!!", token});
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "ERROR" });
@@ -453,7 +475,7 @@ module.exports = {
   {
     try{
     const {id}=req.body;
-     const clearaddress=await Models.addressModel.destroy({where:{id}})
+     const clearaddress=await Models.addressModel.destroy({where:{id:id}})
      return res.status(200).json({message:"CLEAR ADDRESS SUCCESSFULLY!",clearaddress})
     }
     catch(error)
